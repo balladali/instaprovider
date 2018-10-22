@@ -12,11 +12,12 @@ import (
 )
 
 type InstaPost struct {
-	Description string `json:"description"`
-	PhotoURL    string `json:"photo_url"`
-	Likes       int64  `json:"likes"`
-	ID          string `json:"id"`
-	PostUrl     string `json:"post_url"`
+	Description string   `json:"description"`
+	PhotoURLs   []string `json:"photo_urls"`
+	VideoURLs   []string `json:"video_urls"`
+	Likes       int64    `json:"likes"`
+	ID          string   `json:"id"`
+	PostUrl     string   `json:"post_url"`
 }
 
 type InstaUser struct {
@@ -82,7 +83,6 @@ func (handler InstagramHandler) getPosts(name string, id int64) *InstaUser {
 			break
 		}
 		postInfo := InstaPost{
-			PhotoURL: media.DisplayUrl,
 			PostUrl:  media.GetPostUrl(),
 			Likes:    media.EdgeMediaPreviewLike.Count,
 			ID:       media.Id,
@@ -93,7 +93,10 @@ func (handler InstagramHandler) getPosts(name string, id int64) *InstaUser {
 		if media.IsVideo {
 			//all posts public response does not contain video url
 			info, _ := handler.PrivateAPIManager.GetPostInfo(media.GetPostCode())
-			postInfo.PhotoURL = info.GetMediaUrls()[0]
+			postInfo.VideoURLs = info.GetMediaUrls()
+		} else {
+			info, _ := handler.PublicAPIManager.GetPostInfo(media.GetPostCode())
+			postInfo.PhotoURLs = info.GetMediaUrls()
 		}
 		resp.Posts = append(resp.Posts, postInfo)
 	}
